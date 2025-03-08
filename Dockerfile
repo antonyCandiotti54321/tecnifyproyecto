@@ -1,29 +1,22 @@
-# 1️⃣ Usamos una imagen oficial de OpenJDK 21 como base
-FROM openjdk:21 AS build
+# 1️⃣ Usamos la imagen oficial de Gradle con Java 21
+FROM gradle:8.5-jdk21 AS build
 
-# 2️⃣ Definimos el directorio de trabajo dentro del contenedor
+# 2️⃣ Establecemos el directorio de trabajo
 WORKDIR /app
 
-# 3️⃣ Copiamos los archivos del proyecto al contenedor
+# 3️⃣ Copiamos el código fuente
 COPY . .
 
-# 4️⃣ Instalamos Gradle dentro del contenedor (opcional si ya tienes Gradle Wrapper)
-RUN apt-get update && apt-get install -y gradle
+# 4️⃣ Construimos el proyecto (genera el JAR)
+RUN gradle build --no-daemon
 
-# 5️⃣ Construimos el proyecto usando Gradle (genera el archivo JAR)
-RUN ./gradlew build --no-daemon
+# 5️⃣ Usamos una imagen más liviana para ejecutar el JAR
+FROM openjdk:21-jdk-slim
 
-# 6️⃣ Extraemos la imagen mínima necesaria para ejecutar la aplicación
-FROM openjdk:21
-
-# 7️⃣ Definimos el directorio de trabajo donde correrá la app
 WORKDIR /app
 
-# 8️⃣ Copiamos el archivo JAR generado en la etapa anterior
+# 6️⃣ Copiamos el JAR generado en la fase de compilación
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# 9️⃣ Exponemos el puerto 8080 para que el contenedor acepte conexiones
-EXPOSE 8080
-
-# 🔟 Definimos el comando para ejecutar la aplicación
+# 7️⃣ Comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
