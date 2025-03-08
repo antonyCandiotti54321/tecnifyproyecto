@@ -20,3 +20,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 
 # 7️⃣ Comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
+
